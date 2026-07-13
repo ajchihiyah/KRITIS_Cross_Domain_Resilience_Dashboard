@@ -201,4 +201,4 @@ This specification is designed for **German Critical Infrastructure Operators** 
 
 **Generated:** 2026-07-13  
 **Version:** 1.0.0  
-**Author:** AI-Generated Technical Specification
+**Author:** Ashley Jordan Chihiya
