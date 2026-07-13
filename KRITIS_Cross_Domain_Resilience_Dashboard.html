@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Domain Resilience Dashboard: Cyber + Physical (NIS2 + KRITIS-DachG)</title>
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-red: #ef4444;
+  --accent-orange: #f59e0b;
+  --accent-green: #22c55e;
+  --accent-blue: #3b82f6;
+  --accent-purple: #7c3aed;
+  --border: #1e293b;
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 15px;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+  border-bottom: 2px solid var(--accent-blue);
+  padding: 48px 0 36px;
+  margin-bottom: 0;
+}
+.header .badge {
+  display: inline-block;
+  background: var(--accent-red);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.header h1 { font-size: 36px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+.header .subtitle { font-size: 18px; color: var(--text-secondary); margin-bottom: 20px; }
+.header .meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
+.header .meta span { display: flex; align-items: center; gap: 6px; }
+.nav {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 12px 0;
+  overflow-x: auto;
+}
+.nav .container { display: flex; gap: 8px; }
+.nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+.nav a:hover, .nav a.active { background: var(--bg-tertiary); color: var(--text-primary); }
+.section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+.section:last-child { border-bottom: none; }
+.section-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+.section-subtitle { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
+.card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; transition: border-color 0.2s; }
+.card:hover { border-color: var(--bg-tertiary); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.card-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.card-badge { font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
+.badge-red { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
+.badge-orange { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.4); }
+.badge-green { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.4); }
+.badge-blue { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.4); }
+.badge-purple { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.4); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+@media (max-width: 900px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+ul.feature-list { list-style: none; padding: 0; }
+ul.feature-list li { padding: 8px 0 8px 28px; position: relative; color: var(--text-secondary); font-size: 14px; }
+ul.feature-list li::before { content: "->"; position: absolute; left: 0; color: var(--accent-blue); font-weight: 700; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+th { background: var(--bg-tertiary); color: var(--text-primary); padding: 14px 16px; text-align: left; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+tr:hover td { background: rgba(30,41,59,0.5); }
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0; }
+.stat-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; }
+.stat-value { font-size: 36px; font-weight: 800; margin-bottom: 4px; }
+.stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.alert { padding: 16px 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid; }
+.alert-red { background: rgba(239,68,68,0.1); border-color: var(--accent-red); }
+.alert-orange { background: rgba(245,158,11,0.1); border-color: var(--accent-orange); }
+.alert-green { background: rgba(34,197,94,0.1); border-color: var(--accent-green); }
+.alert-blue { background: rgba(59,130,246,0.1); border-color: var(--accent-blue); }
+.alert-title { font-weight: 700; margin-bottom: 4px; font-size: 14px; }
+.alert-red .alert-title { color: #fca5a5; }
+.alert-orange .alert-title { color: #fcd34d; }
+.alert-green .alert-title { color: #86efac; }
+.alert-blue .alert-title { color: #93c5fd; }
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--bg-tertiary); }
+.timeline-item { position: relative; padding-bottom: 28px; }
+.timeline-item::before { content: ''; position: absolute; left: -28px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-blue); border: 2px solid var(--bg-primary); }
+.timeline-item.completed::before { background: var(--accent-green); }
+.timeline-item.critical::before { background: var(--accent-red); }
+.timeline-item.warning::before { background: var(--accent-orange); }
+.timeline-date { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.timeline-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.timeline-desc { font-size: 14px; color: var(--text-secondary); }
+.phase-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.phase-header { background: var(--bg-tertiary); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.phase-name { font-size: 16px; font-weight: 700; }
+.phase-duration { font-size: 12px; color: var(--text-muted); background: var(--bg-secondary); padding: 4px 12px; border-radius: 12px; }
+.phase-body { padding: 20px; }
+.phase-target { font-size: 13px; color: var(--text-muted); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.footer { background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 32px 0; margin-top: 48px; text-align: center; font-size: 13px; color: var(--text-muted); }
+a { color: var(--accent-blue); text-decoration: none; transition: color 0.2s; }
+a:hover { color: #60a5fa; text-decoration: underline; }
+.link-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+.link-card:hover { border-color: var(--accent-blue); background: rgba(59,130,246,0.05); text-decoration: none; }
+.link-card-title { font-weight: 700; font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
+.link-card-desc { font-size: 12px; color: var(--text-secondary); }
+@media print { .nav { display: none; } body { background: white; color: black; } .card { border: 1px solid #ccc; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container">
+    <div class="badge">Project Specification v1.0.0</div>
+    <h1>🛡️ Cross-Domain Resilience Dashboard</h1>
+    <p class="subtitle">Cyber + Physical Security Unified SOC Frontend — NIS2 + KRITIS-DachG Compliant</p>
+    <div class="meta">
+      <span>📅 2026-07-13</span>
+      <span>📄 Project Specification & Frontend Blueprint</span>
+      <span>⚖️ German Federal Law Compliance</span>
+      <span>🏢 ~2,000 Affected Operators</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="container">
+    <a onclick="scrollToSection('executive')">Executive Summary</a>
+    <a onclick="scrollToSection('regulatory')">Regulatory Foundation</a>
+    <a onclick="scrollToSection('modules')">Core Modules</a>
+    <a onclick="scrollToSection('ui')">UI Views</a>
+    <a onclick="scrollToSection('architecture')">Architecture</a>
+    <a onclick="scrollToSection('roadmap')">Roadmap</a>
+    <a onclick="scrollToSection('competitive')">Competitive</a>
+    <a onclick="scrollToSection('metrics')">Success Metrics</a>
+  </div>
+</nav>
+
+<section class="section" id="executive">
+  <div class="container">
+    <h2 class="section-title">📋 Executive Summary</h2>
+    <p class="section-subtitle">The first federal law mandating physical and organizational resilience alongside cybersecurity</p>
+
+    <div class="alert alert-red">
+      <div class="alert-title">⚠️ Critical Deadline Update (July 2026)</div>
+      <p>The originally cited July 17, 2026 registration deadline has been removed by Bundestag amendment (June 12, 2026). The new deadline will be <strong>3 months after the KRITIS-Ordinance (KritisV) enters force</strong> — still pending Bundesrat approval. Risk analysis (9 months post-registration) and resilience measures (10 months post-registration) follow.</p>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--accent-red);">€10M</div>
+        <div class="stat-label">Maximum Fine</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--accent-orange);">2,000</div>
+        <div class="stat-label">Affected Operators</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--accent-purple);">11</div>
+        <div class="stat-label">Critical Sectors</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color: var(--accent-green);">24h</div>
+        <div class="stat-label">Reporting Window</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🎯 Market Opportunity</div>
+        <span class="card-badge badge-purple">First-Mover Gap</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 16px;">The KRITIS-DachG (in force since March 17, 2026) creates a brand-new compliance market. Approximately 2,000 operators across 11 sectors must now integrate physical and cyber security operations for the first time under federal law. Most SOCs have zero tooling for cross-domain correlation.</p>
+
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Penalty Exposure</h4>
+          <ul class="feature-list">
+            <li>Fines up to €10,000,000 or 2% of global group revenue</li>
+            <li>Personal board liability with private assets</li>
+            <li>Management bans up to 5 years for repeat violations</li>
+            <li>Registration violations: up to €500,000 – €1,000,000</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Product Positioning</h4>
+          <ul class="feature-list">
+            <li>First unified SOC frontend for cyber-physical correlation</li>
+            <li>Built-in BSI/BBK dual-reporting automation per §18</li>
+            <li>Facility floor plan overlay with risk heatmaps</li>
+            <li>24/7 contact point management per §8</li>
+            <li>4-year resilience cycle tracking with audit evidence</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="regulatory">
+  <div class="container">
+    <h2 class="section-title">⚖️ Regulatory Foundation</h2>
+    <p class="section-subtitle">KRITIS-DachG (in force March 17, 2026) + NIS2UmsuCG — the dual compliance regime</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">KRITIS-DachG</div>
+          <span class="card-badge badge-red">In Force</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;"><strong>Gesetz zur Stärkung der Resilienz Kritischer Anlagen</strong> — implements EU Directive 2022/2557 (CER Directive). The first German law mandating physical and organizational resilience across sectors.</p>
+        <div style="font-size: 13px; color: var(--text-muted);">
+          <p><strong>Enforcement:</strong> BBK (Bundesamt für Bevölkerungsschutz und Katastrophenhilfe)</p>
+          <p><strong>Scope:</strong> ~2,000 operators across 11+ sectors</p>
+          <p><strong>Threshold:</strong> Generally 500,000 inhabitants supply volume</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">NIS2UmsuCG</div>
+          <span class="card-badge badge-blue">Complementary</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;"><strong>Gesetz zur Umsetzung der NIS2-Richtlinie</strong> — governs digital cybersecurity. KRITIS-DachG operators are generally deemed "besonders wichtige Einrichtungen" under BSIG §28 Abs. 1 Nr. 1.</p>
+        <div style="font-size: 13px; color: var(--text-muted);">
+          <p><strong>Enforcement:</strong> BSI (Bundesamt für Sicherheit in der Informationstechnik)</p>
+          <p><strong>Scope:</strong> Digital cybersecurity, network security, incident response</p>
+          <p><strong>Relationship:</strong> Both laws can apply simultaneously to the same operator</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 20px; font-weight: 700; margin: 40px 0 20px;">📜 Key Legal Sections</h3>
+
+    <div class="card" id="legal-section_8">
+      <div class="card-header">
+        <div class="card-title">Registration & 24/7 Contact Point</div>
+        <span class="card-badge badge-blue">SECTION_8</span>
+      </div>
+      <ul class="feature-list">
+        <li>Registration via joint BBK/BSI platform (BSI-Gesetz portal)</li>
+        <li>Operator master data, facility class, threshold evidence</li>
+        <li>24/7 contact point for authorities (§8 Abs. 1 Nr. 6)</li>
+        <li>Updates within 2 weeks for changes; annual for supply degree changes</li>
+        <li>BBK can register operators ex officio if they fail to comply</li>
+      </ul>
+    </div>
+
+    <div class="card" id="legal-section_12">
+      <div class="card-header">
+        <div class="card-title">Risk Analysis (4-Year Cycle)</div>
+        <span class="card-badge badge-blue">SECTION_12</span>
+      </div>
+      <ul class="feature-list">
+        <li>Comprehensive risk assessment minimum every 4 years</li>
+        <li>Must cover: natural disasters, technical failures, anthropogenic risks, hybrid threats, terrorism</li>
+        <li>Must consider federal national risk analysis</li>
+        <li>First due 9 months after registration</li>
+        <li>BMI may issue methodological regulations and templates</li>
+      </ul>
+    </div>
+
+    <div class="card" id="legal-section_13">
+      <div class="card-header">
+        <div class="card-title">Resilience Plan & Measures</div>
+        <span class="card-badge badge-blue">SECTION_13</span>
+      </div>
+      <ul class="feature-list">
+        <li>Appropriate technical, organizational, and security measures (TOM)</li>
+        <li>Documented purpose-means proportionality assessment</li>
+        <li>Resilience plan kept current</li>
+        <li>BBK will provide templates and models</li>
+        <li>First due 10 months after registration</li>
+      </ul>
+    </div>
+
+    <div class="card" id="legal-section_16">
+      <div class="card-header">
+        <div class="card-title">Evidence & Audit</div>
+        <span class="card-badge badge-blue">SECTION_16</span>
+      </div>
+      <ul class="feature-list">
+        <li>No regular mandatory audits by operators themselves</li>
+        <li>BBK/zuständige Behörde can request evidence (resilience plan, audit results)</li>
+        <li>Can request BSI insight into §39 KRITIS-Nachweis (NIS2)</li>
+        <li>Risk-based audits by authorities (no fixed intervals)</li>
+        <li>Can demand deficiency remediation plans</li>
+        <li>Can engage independent third parties</li>
+        <li>BBK will define audit methodology and auditor requirements</li>
+      </ul>
+    </div>
+
+    <div class="card" id="legal-section_18">
+      <div class="card-header">
+        <div class="card-title">Incident Reporting (Dual Reporting)</div>
+        <span class="card-badge badge-blue">SECTION_18</span>
+      </div>
+      <ul class="feature-list">
+        <li>Incidents with significant effects must be reported without undue delay, within 24 hours maximum</li>
+        <li>Detailed report within 1 month (72 hours in some interpretations for initial detailed follow-up)</li>
+        <li>Report to joint BBK/BSI reporting point</li>
+        <li>Content: nature, cause, consequences, affected users, duration, geographic area, cross-border effects</li>
+        <li>BBK and BSI coordinate reporting procedure details</li>
+        <li>BBK forwards to EU authorities if 6+ member states affected</li>
+      </ul>
+    </div>
+
+    <div class="card" id="legal-section_20">
+      <div class="card-header">
+        <div class="card-title">Management/Board Duties</div>
+        <span class="card-badge badge-blue">SECTION_20</span>
+      </div>
+      <ul class="feature-list">
+        <li>Management must organize and supervise implementation of resilience measures</li>
+        <li>Personal liability under corporate law for breaches</li>
+        <li>Analogous to NIS2 Article 34 board liability</li>
+        <li>Liable with private assets for known or should-have-known breaches</li>
+        <li>Management ban up to 5 years possible in repeat cases</li>
+      </ul>
+    </div>
+
+    <h3 style="font-size: 20px; font-weight: 700; margin: 40px 0 20px;">💰 Fine Structure</h3>
+    <div class="card" id="legal-fines">
+      <div class="card-header">
+        <div class="card-title">Maximum Penalty</div>
+        <span class="card-badge badge-red">€10,000,000</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 16px;">Or 2% of global group revenue, whichever is higher. Management is personally liable with private assets.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Violation Type</th>
+            <th>Maximum Fine</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Non-compliance with specific orders, failure to cooperate with supervisory measures</td><td style="color: #fca5a5; font-weight: 700;">Up to €1,000,000</td></tr>
+          <tr><td>Failure to submit audit results</td><td style="color: #fca5a5; font-weight: 700;">Up to €500,000</td></tr>
+          <tr><td>Missing evidence of resilience compliance</td><td style="color: #fcd34d; font-weight: 700;">Up to €200,000</td></tr>
+          <tr><td>Registration violations, incomplete information</td><td style="color: #fcd34d; font-weight: 700;">Up to €100,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="modules">
+  <div class="container">
+    <h2 class="section-title">🔧 Core Product Modules</h2>
+    <p class="section-subtitle">Five integrated modules addressing the complete KRITIS-DachG compliance lifecycle</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
+      <a onclick="scrollToSection('mod-m1')" class="link-card">
+        <div class="link-card-title">M1: Correlation Engine</div>
+        <div class="link-card-desc">Cyber + Physical event correlation</div>
+      </a>
+      <a onclick="scrollToSection('mod-m2')" class="link-card">
+        <div class="link-card-title">M2: Reporting Decision Tree</div>
+        <div class="link-card-desc">BSI/BBK/Both classification</div>
+      </a>
+      <a onclick="scrollToSection('mod-m3')" class="link-card">
+        <div class="link-card-title">M3: Facility Heatmap</div>
+        <div class="link-card-desc">Interactive risk visualization</div>
+      </a>
+      <a onclick="scrollToSection('mod-m4')" class="link-card">
+        <div class="link-card-title">M4: 24/7 Contact Manager</div>
+        <div class="link-card-desc">§8 compliance & escalation</div>
+      </a>
+      <a onclick="scrollToSection('mod-m5')" class="link-card">
+        <div class="link-card-title">M5: Compliance Tracker</div>
+        <div class="link-card-desc">4-year cycle & audit evidence</div>
+      </a>
+    </div>
+
+    <div class="card" id="mod-m1">
+      <div class="card-header">
+        <div class="card-title">M1: Unified Incident Correlation Engine</div>
+        <span class="card-badge badge-purple">M1</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Real-time correlation of cyber alerts (SIEM, IDS, EDR, firewall, AD) with physical security events (access control, CCTV motion detection, perimeter breach sensors, BMS environmental alerts). Uses temporal proximity, spatial relationship, asset mapping, and user identity linking.</p>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Correlation Scenarios</h4>
+      <div class="grid-2">
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 14px;">Insider Threat</span>
+            <span style="font-size: 11px; color: #fca5a5; font-weight: 600;">BOTH (BSI + BBK)</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Unauthorized physical access + failed/successful remote login from unusual location + data exfiltration attempts</p>
+          <p style="font-size: 12px; color: var(--text-secondary);"><strong>Example:</strong> Server Room A badge breach at 02:00 + Admin VPN failure from external IP at 02:05 + unusual outbound data spike</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 14px;">OT/ICS Physical Compromise</span>
+            <span style="font-size: 11px; color: #fca5a5; font-weight: 600;">BOTH (BSI + BBK)</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Physical intrusion into control room + SCADA network anomaly + process parameter changes</p>
+          <p style="font-size: 12px; color: var(--text-secondary);"><strong>Example:</strong> Control room motion detection + PLC communication anomaly + valve position unauthorized change</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 14px;">Supply Chain Attack with Physical Access</span>
+            <span style="font-size: 11px; color: #fca5a5; font-weight: 600;">BOTH (BSI + BBK)</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Vendor/service provider physical access + malware deployment on internal systems</p>
+          <p style="font-size: 12px; color: var(--text-secondary);"><strong>Example:</strong> Maintenance contractor badge entry + new executable on engineering workstation</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 14px;">Drone/Surveillance Incident</span>
+            <span style="font-size: 11px; color: #fcd34d; font-weight: 600;">BOTH (BSI + BBK)</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Unauthorized drone overflight + network scanning/RF interference detected</p>
+          <p style="font-size: 12px; color: var(--text-secondary);"><strong>Example:</strong> Perimeter radar detects drone + WiFi/RF anomaly detected by IDS</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 14px;">Natural Disaster with Cyber Impact</span>
+            <span style="font-size: 11px; color: #fcd34d; font-weight: 600;">BBK (primary) + BSI</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Environmental sensor alert (flood, fire, earthquake) + IT system failures</p>
+          <p style="font-size: 12px; color: var(--text-secondary);"><strong>Example:</strong> BMS flood detection basement + server room temperature spike + network segment down</p>
+        </div>
+      </div>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Data Sources</h4>
+      <div class="grid-2">
+
+        <div>
+          <div style="font-weight: 700; font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Cyber Sources</div>
+          <ul style="list-style: none; padding: 0; font-size: 13px; color: var(--text-secondary);">
+            <li style='padding: 3px 0;'>• Splunk/QRadar/Sentinel (SIEM)</li>
+            <li style='padding: 3px 0;'>• Snort/Suricata (IDS)</li>
+            <li style='padding: 3px 0;'>• CrowdStrike/SentinelOne (EDR)</li>
+            <li style='padding: 3px 0;'>• Palo Alto/Fortinet (Firewall)</li>
+            <li style='padding: 3px 0;'>• Microsoft Active Directory</li>
+            <li style='padding: 3px 0;'>• Vulnerability scanners</li>
+            <li style='padding: 3px 0;'>• Threat intelligence feeds</li>
+          </ul>
+        </div>
+
+        <div>
+          <div style="font-weight: 700; font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Physical Sources</div>
+          <ul style="list-style: none; padding: 0; font-size: 13px; color: var(--text-secondary);">
+            <li style='padding: 3px 0;'>• Honeywell/Lenel/CCure (Access Control)</li>
+            <li style='padding: 3px 0;'>• Genetec/Milestone/Bosch (VMS/CCTV)</li>
+            <li style='padding: 3px 0;'>• Perimeter radar/LiDAR/fence sensors</li>
+            <li style='padding: 3px 0;'>• BMS/BAS (Siemens/BACnet/Modbus)</li>
+            <li style='padding: 3px 0;'>• Intrusion detection (motion, glass break, door contacts)</li>
+            <li style='padding: 3px 0;'>• Environmental sensors (temp, humidity, water)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="mod-m2">
+      <div class="card-header">
+        <div class="card-title">M2: Dual-Reporting Decision Tree & Workflow</div>
+        <span class="card-badge badge-red">M2</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Interactive decision engine that guides analysts through §18 KRITIS-DachG reporting classification. Automatically suggests BSI-only, BBK-only, or dual reporting based on incident correlation results.</p>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Reporting Decision Logic</h4>
+      <div class="grid-3">
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 14px; color: #93c5fd; margin-bottom: 12px;">BSI Only</div>
+          <ul style="list-style: none; padding: 0; font-size: 12px; color: var(--text-secondary);">
+            <li style='padding: 4px 0;'>• Pure IT security incident (malware, data breach, unauthorized network access)</li>
+            <li style='padding: 4px 0;'>• No physical security component</li>
+            <li style='padding: 4px 0;'>• No impact on physical processes or facility safety</li>
+            <li style='padding: 4px 0;'>• Digital-only supply chain compromise</li>
+          </ul>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 14px; color: #fcd34d; margin-bottom: 12px;">BBK Only</div>
+          <ul style="list-style: none; padding: 0; font-size: 12px; color: var(--text-secondary);">
+            <li style='padding: 4px 0;'>• Pure physical incident (natural disaster, sabotage, terrorism, physical damage)</li>
+            <li style='padding: 4px 0;'>• No IT systems compromised or affected</li>
+            <li style='padding: 4px 0;'>• Personnel safety incident without digital component</li>
+            <li style='padding: 4px 0;'>• Physical perimeter breach without network access</li>
+          </ul>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 14px; color: #c4b5fd; margin-bottom: 12px;">Both Authorities</div>
+          <ul style="list-style: none; padding: 0; font-size: 12px; color: var(--text-secondary);">
+            <li style='padding: 4px 0;'>• OT/ICS compromise affecting physical processes</li>
+            <li style='padding: 4px 0;'>• Insider threat with digital + physical components</li>
+            <li style='padding: 4px 0;'>• Unauthorized drone overflight with RF/cyber interference</li>
+            <li style='padding: 4px 0;'>• Supply chain attack with physical access + digital payload</li>
+            <li style='padding: 4px 0;'>• Environmental disaster causing both physical damage and IT outage</li>
+            <li style='padding: 4px 0;'>• Physical theft of IT assets containing sensitive data</li>
+          </ul>
+        </div>
+      </div>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Workflow Steps</h4>
+      <div class="timeline">
+
+        <div class="timeline-item completed">
+          <div class="timeline-date">Step 1</div>
+          <div class="timeline-title">1. Incident auto-classification based on correlation engine output</div>
+        </div>
+
+        <div class="timeline-item completed">
+          <div class="timeline-date">Step 2</div>
+          <div class="timeline-title">2. Analyst review with manual override capability</div>
+        </div>
+
+        <div class="timeline-item completed">
+          <div class="timeline-date">Step 3</div>
+          <div class="timeline-title">3. Authority selection (BSI / BBK / Both) with legal justification</div>
+        </div>
+
+        <div class="timeline-item critical">
+          <div class="timeline-date">Step 4</div>
+          <div class="timeline-title">4. 24-hour countdown timer display from incident detection</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 5</div>
+          <div class="timeline-title">5. Pre-filled report template generation with incident data</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 6</div>
+          <div class="timeline-title">6. Evidence attachment (logs, CCTV clips, sensor data, network captures)</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 7</div>
+          <div class="timeline-title">7. Digital signature and submission to joint BBK/BSI portal</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 8</div>
+          <div class="timeline-title">8. Status tracking: Submitted → Acknowledged → Detailed Report Due → Closed</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 9</div>
+          <div class="timeline-title">9. Automated reminder for 1-month detailed report</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 10</div>
+          <div class="timeline-title">10. Audit trail of all reporting activities</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="mod-m3">
+      <div class="card-header">
+        <div class="card-title">M3: Facility Cyber-Physical Heatmap</div>
+        <span class="card-badge badge-orange">M3</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Interactive facility visualization showing real-time cyber-physical risk posture. Overlays cyber asset locations, physical sensor status, personnel positions, and environmental conditions on facility floor plans.</p>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Key Features</h4>
+      <ul class="feature-list">
+        <li>SVG-based interactive floor plans with zoom/pan</li>
+        <li>Zone-based risk scoring (0-100) combining cyber and physical factors</li>
+        <li>Color-coded heatmap: Green (0-25), Yellow (26-50), Orange (51-75), Red (76-100)</li>
+        <li>Pulsing markers for active incidents</li>
+        <li>Layer toggles: Cyber assets, Physical sensors, Personnel, Environmental, Risk overlay</li>
+        <li>Historical incident replay with time scrubber</li>
+        <li>Click-through to asset/sensor detail with event history</li>
+        <li>Evacuation route overlay for emergency response</li>
+      </ul>
+    </div>
+
+    <div class="card" id="mod-m4">
+      <div class="card-header">
+        <div class="card-title">M4: 24/7 Contact Point & Escalation Manager</div>
+        <span class="card-badge badge-green">M4</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Manages the mandatory §8 KRITIS-DachG 24/7 contact point with automated availability verification, shift handover logging, and escalation chain management.</p>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Key Features</h4>
+      <ul class="feature-list">
+        <li>Contact point roster with shift scheduling</li>
+        <li>Automated check-in verification (app confirmation, SMS, phone ping)</li>
+        <li>Escalation chain: Primary → Secondary → Management → Board</li>
+        <li>Real-time availability status dashboard</li>
+        <li>Automatic handover documentation with timestamp</li>
+        <li>BBK/BSI direct communication channel status</li>
+        <li>Incident-driven auto-escalation (critical incident → immediate management alert)</li>
+        <li>Monthly compliance report generation</li>
+        <li>Backup contact point activation logging</li>
+      </ul>
+    </div>
+
+    <div class="card" id="mod-m5">
+      <div class="card-header">
+        <div class="card-title">M5: Resilience Plan Compliance Tracker</div>
+        <span class="card-badge badge-blue">M5</span>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">End-to-end compliance management for the 4-year KRITIS-DachG cycle. Tracks risk analyses, resilience plans, incident reports, audit evidence, management oversight, and training records.</p>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Key Features</h4>
+      <ul class="feature-list">
+        <li>4-year timeline visualization with milestone tracking</li>
+        <li>Kanban-style task board for resilience measure implementation</li>
+        <li>Document vault with version control and access logging</li>
+        <li>Gap analysis against KRITIS-DachG requirements</li>
+        <li>Audit readiness score with breakdown by section</li>
+        <li>Management liability exposure dashboard</li>
+        <li>Automated deadline reminders (90/60/30/7 days)</li>
+        <li>BBK audit simulation module</li>
+        <li>Evidence package generation for authority submission</li>
+      </ul>
+
+      <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 16px;">Tracked Compliance Artifacts</h4>
+      <div class="grid-2">
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">SECTION_12</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Risk analysis documentation (4-year cycle, methodology, national risk analysis consideration)</div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">SECTION_13</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Resilience plan with TOM documentation, purpose-means assessment, current status</div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">SECTION_16</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Audit evidence, deficiency remediation plans, third-party audit results</div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">SECTION_18</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Incident report archive, follow-up reports, authority correspondence</div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">SECTION_20</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Management oversight documentation, board meeting minutes, attestation records</div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">ISO_22301</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Business continuity plans, impact analyses, exercise records</div>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 12px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 12px; color: var(--accent-blue); margin-bottom: 4px;">PERSONNEL</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Security screening records, training completion, access authorization logs</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ui">
+  <div class="container">
+    <h2 class="section-title">🖥️ UI Views & Wireframes</h2>
+    <p class="section-subtitle">Five primary views designed for SOC analysts, compliance officers, and board members</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
+      <a onclick="scrollToSection('view-v1')" class="link-card">
+        <div class="link-card-title">V1: Operations Center</div>
+        <div class="link-card-desc">Main SOC dashboard</div>
+      </a>
+      <a onclick="scrollToSection('view-v2')" class="link-card">
+        <div class="link-card-title">V2: Incident Detail</div>
+        <div class="link-card-desc">Dual-pane investigation</div>
+      </a>
+      <a onclick="scrollToSection('view-v3')" class="link-card">
+        <div class="link-card-title">V3: Reporting Center</div>
+        <div class="link-card-desc">BSI/BBK report wizard</div>
+      </a>
+      <a onclick="scrollToSection('view-v4')" class="link-card">
+        <div class="link-card-title">V4: Facility Manager</div>
+        <div class="link-card-desc">Interactive floor plans</div>
+      </a>
+      <a onclick="scrollToSection('view-v5')" class="link-card">
+        <div class="link-card-title">V5: Compliance & Audit</div>
+        <div class="link-card-desc">4-year cycle tracking</div>
+      </a>
+    </div>
+
+    <div class="card" id="view-v1">
+      <div class="card-header">
+        <div class="card-title">Operations Center (Main Dashboard)</div>
+        <span class="card-badge badge-purple">V1</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong>Layout:</strong> Responsive 12-column grid, 1440px+ viewport</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+          <span style="color: var(--accent-blue); margin-right: 6px;">◆</span>Active Incidents (dual-pane: cyber vs physical, with correlation indicators)
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+          <span style="color: var(--accent-blue); margin-right: 6px;">◆</span>Facility Risk Heatmap (interactive SVG floor plan)
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+          <span style="color: var(--accent-blue); margin-right: 6px;">◆</span>24/7 Contact Status (current shift, availability, next handover)
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+          <span style="color: var(--accent-blue); margin-right: 6px;">◆</span>Reporting Queue (pending BSI/BBK reports with countdown timers)
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+          <span style="color: var(--accent-blue); margin-right: 6px;">◆</span>Compliance Health Score (circular gauge with section breakdown)
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+          <span style="color: var(--accent-blue); margin-right: 6px;">◆</span>Recent Correlated Events (timeline of cross-domain incidents)
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="view-v2">
+      <div class="card-header">
+        <div class="card-title">Incident Detail (Dual-Pane)</div>
+        <span class="card-badge badge-purple">V2</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong>Layout:</strong> 50/50 vertical split with bottom analysis panel</p>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-blue); margin-bottom: 8px;">◀ Left Pane</div>
+          <p style="font-size: 13px; color: var(--text-secondary);">Cyber Events Timeline (SIEM alerts, network logs, affected assets, traffic visualization)</p>
+        </div>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-orange); margin-bottom: 8px;">▶ Right Pane</div>
+          <p style="font-size: 13px; color: var(--text-secondary);">Physical Events Timeline (access logs, CCTV thumbnails, sensor data, facility context)</p>
+        </div>
+      </div>
+
+      <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border); margin-top: 12px;">
+        <div style="font-weight: 700; font-size: 13px; color: var(--accent-green); margin-bottom: 8px;">▼ Bottom Panel</div>
+        <p style="font-size: 13px; color: var(--text-secondary);">Correlation Analysis (matrix showing link rationale) + Reporting Decision (BSI/BBK/Both recommendation)</p>
+      </div>
+    </div>
+
+    <div class="card" id="view-v3">
+      <div class="card-header">
+        <div class="card-title">Reporting Center</div>
+        <span class="card-badge badge-purple">V3</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong>Layout:</strong> Stepper wizard (6 steps)</p>
+
+      <div class="timeline" style="margin-top: 16px;">
+
+        <div class="timeline-item completed">
+          <div class="timeline-date">Step 1</div>
+          <div class="timeline-title">Incident Classification (interactive decision tree)</div>
+        </div>
+
+        <div class="timeline-item completed">
+          <div class="timeline-date">Step 2</div>
+          <div class="timeline-title">Authority Selection (BSI/BBK/Both with countdown timer)</div>
+        </div>
+
+        <div class="timeline-item completed">
+          <div class="timeline-date">Step 3</div>
+          <div class="timeline-title">Report Composition (pre-filled templates with rich text editor)</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 4</div>
+          <div class="timeline-title">Evidence Attachment (drag-drop with categorized buckets)</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 5</div>
+          <div class="timeline-title">Review & Submit (full preview + digital signature)</div>
+        </div>
+
+        <div class="timeline-item ">
+          <div class="timeline-date">Step 6</div>
+          <div class="timeline-title">Tracking & Follow-up (status tracker + reminder management)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="view-v4">
+      <div class="card-header">
+        <div class="card-title">Facility Manager</div>
+        <span class="card-badge badge-purple">V4</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong>Layout:</strong> Map-centric with collapsible sidebar</p>
+    </div>
+
+    <div class="card" id="view-v5">
+      <div class="card-header">
+        <div class="card-title">Compliance & Audit</div>
+        <span class="card-badge badge-purple">V5</span>
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong>Layout:</strong> Timeline top, detail panels below</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px;">
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">4-Year Timeline</div>
+          <p style="font-size: 12px; color: var(--text-secondary);">4-Year Timeline (milestones: registration, risk analysis, resilience plan, audit windows)</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">Task Tracker</div>
+          <p style="font-size: 12px; color: var(--text-secondary);">Task Tracker (Kanban: Backlog → In Progress → Review → Complete)</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">Document Vault</div>
+          <p style="font-size: 12px; color: var(--text-secondary);">Document Vault (folder structure with version control)</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">Audit Readiness Score</div>
+          <p style="font-size: 12px; color: var(--text-secondary);">Audit Readiness Score (gap analysis by KRITIS section)</p>
+        </div>
+
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">Management Liability Dashboard</div>
+          <p style="font-size: 12px; color: var(--text-secondary);">Management Liability Dashboard (exposure metrics, board responsibility matrix)</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="architecture">
+  <div class="container">
+    <h2 class="section-title">🏗️ Technical Architecture</h2>
+    <p class="section-subtitle">Modern React-based frontend with enterprise-grade backend integration</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Frontend Stack</div>
+          <span class="card-badge badge-blue">React 18+</span>
+        </div>
+        <table>
+          <tr><td><strong>Framework</strong></td><td>React 18+ with TypeScript</td></tr>
+          <tr><td><strong>State Management</strong></td><td>Redux Toolkit + RTK Query</td></tr>
+          <tr><td><strong>UI Library</strong></td><td>Material-UI v5 / Ant Design</td></tr>
+          <tr><td><strong>Visualization</strong></td><td>D3.js, Chart.js, Leaflet/OpenLayers</td></tr>
+          <tr><td><strong>Real-Time</strong></td><td>WebSocket (Socket.io) / SSE</td></tr>
+          <tr><td><strong>Maps</strong></td><td>SVG-based floor plans with Canvas overlay</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Backend Integration</div>
+          <span class="card-badge badge-green">Enterprise</span>
+        </div>
+        <table>
+          <tr><td><strong>API Style</strong></td><td>REST + GraphQL</td></tr>
+          <tr><td><strong>Authentication</strong></td><td>OAuth 2.0 / OIDC with MFA</td></tr>
+          <tr><td><strong>Authorization</strong></td><td>RBAC with domain roles</td></tr>
+          <tr><td><strong>Event Bus</strong></td><td>Apache Kafka / RabbitMQ</td></tr>
+          <tr><td><strong>SIEM Connectors</strong></td><td>Splunk REST, QRadar Ariel, Sentinel, Elastic</td></tr>
+          <tr><td><strong>Protocols</strong></td><td>syslog, CEF, LEEF, SNMP traps</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-header">
+        <div class="card-title">Core Data Entities</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;">
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-red); margin-bottom: 4px;">Incident</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Unified cyber-physical with correlation metadata</div>
+        </div>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-orange); margin-bottom: 4px;">SecurityEvent</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Raw normalized events from all sources</div>
+        </div>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-green); margin-bottom: 4px;">Facility</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Site → Building → Floor → Zone → Room</div>
+        </div>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-blue); margin-bottom: 4px;">Asset</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">IT assets with physical location mapping</div>
+        </div>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--accent-purple); margin-bottom: 4px;">ContactPoint</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">24/7 roster with availability tracking</div>
+        </div>
+        <div style="background: var(--bg-primary); border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary); margin-bottom: 4px;">ResiliencePlan</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Documents, tasks, evidence linkage</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="container">
+    <h2 class="section-title">🗓️ Implementation Roadmap</h2>
+    <p class="section-subtitle">Three-phase delivery aligned with KRITIS-DachG compliance deadlines</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
+      <a onclick="scrollToSection('phase-mvp')" class="link-card">
+        <div class="link-card-title">Phase 1: MVP</div>
+        <div class="link-card-desc">8-10 weeks — Proof of concept</div>
+      </a>
+      <a onclick="scrollToSection('phase-core')" class="link-card">
+        <div class="link-card-title">Phase 2: Core</div>
+        <div class="link-card-desc">12-16 weeks — Production ready</div>
+      </a>
+      <a onclick="scrollToSection('phase-enterprise')" class="link-card">
+        <div class="link-card-title">Phase 3: Enterprise</div>
+        <div class="link-card-desc">16-20 weeks — Full scale</div>
+      </a>
+    </div>
+
+    <div class="grid-3">
+
+      <div class="phase-card" id="phase-mvp">
+        <div class="phase-header">
+          <div class="phase-name">Phase 1 MVP</div>
+          <div class="phase-duration">8-10 weeks</div>
+        </div>
+        <div class="phase-body">
+          <ul class="feature-list">
+            <li>Basic dual-pane incident view with manual correlation</li>
+            <li>Simple time+location correlation rules</li>
+            <li>BSI/BBK reporting decision tree (manual)</li>
+            <li>Static facility floor plan with incident markers</li>
+            <li>24/7 contact roster display (read-only)</li>
+            <li>Basic compliance checklist (no workflow)</li>
+          </ul>
+          <div class="phase-target"><strong>Target:</strong> Proof of concept for early adopters preparing for July 2026 registration</div>
+        </div>
+      </div>
+
+      <div class="phase-card" id="phase-core">
+        <div class="phase-header">
+          <div class="phase-name">Phase 2 Core</div>
+          <div class="phase-duration">12-16 weeks</div>
+        </div>
+        <div class="phase-body">
+          <ul class="feature-list">
+            <li>Advanced correlation engine with ML-based pattern detection</li>
+            <li>Full reporting workflow with pre-filled templates and evidence management</li>
+            <li>Interactive heatmaps with real-time risk scoring</li>
+            <li>Contact point availability automation with escalation</li>
+            <li>Resilience plan task tracker with deadline management</li>
+            <li>Integration with 5+ major SIEM and physical security platforms</li>
+          </ul>
+          <div class="phase-target"><strong>Target:</strong> Production-ready for Q4 2026 when risk analysis and resilience plan deadlines approach</div>
+        </div>
+      </div>
+
+      <div class="phase-card" id="phase-enterprise">
+        <div class="phase-header">
+          <div class="phase-name">Phase 3 Enterprise</div>
+          <div class="phase-duration">16-20 weeks</div>
+        </div>
+        <div class="phase-body">
+          <ul class="feature-list">
+            <li>3D facility visualization (WebGL)</li>
+            <li>Predictive risk analytics and threat forecasting</li>
+            <li>Full audit evidence management with automated package generation</li>
+            <li>Executive/board-level dashboards with liability exposure metrics</li>
+            <li>Integration with 20+ platforms (SIEM, VMS, access control, BMS)</li>
+            <li>Multi-site/multi-facility support</li>
+            <li>API for third-party integrations</li>
+          </ul>
+          <div class="phase-target"><strong>Target:</strong> Enterprise scale for 2027 BBK audit readiness</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="alert alert-orange" style="margin-top: 32px;">
+      <div class="alert-title">⏰ Critical Timeline Alignment</div>
+      <p>Phase 1 MVP targets early adopters preparing for registration. Phase 2 Core aligns with risk analysis and resilience plan deadlines (9-10 months post-registration). Phase 3 Enterprise ensures full readiness for 2027 BBK audits.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="competitive">
+  <div class="container">
+    <h2 class="section-title">🏆 Competitive Landscape</h2>
+    <p class="section-subtitle">Why this is a first-mover market gap with no direct competition</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Traditional SIEMs</div>
+          <span class="card-badge badge-red">Gap</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">Splunk, QRadar, Microsoft Sentinel</p>
+        <ul class="feature-list" style="font-size: 12px;">
+          <li>Cyber-only focus</li>
+          <li>No physical security correlation</li>
+          <li>No KRITIS-DachG compliance logic</li>
+          <li>No BSI/BBK reporting automation</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Physical Security</div>
+          <span class="card-badge badge-orange">Gap</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">Genetec, Lenel OnGuard, Honeywell</p>
+        <ul class="feature-list" style="font-size: 12px;">
+          <li>Physical-only focus</li>
+          <li>No cyber threat context</li>
+          <li>No regulatory reporting</li>
+          <li>No incident correlation</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">GRC Platforms</div>
+          <span class="card-badge badge-blue">Gap</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">ServiceNow GRC, RSA Archer</p>
+        <ul class="feature-list" style="font-size: 12px;">
+          <li>Compliance-focused, not operations</li>
+          <li>No real-time incident handling</li>
+          <li>No facility visualization</li>
+          <li>No cyber-physical correlation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px; border-color: var(--accent-purple);">
+      <div class="card-header">
+        <div class="card-title">🎯 Our Unique Value Proposition</div>
+        <span class="card-badge badge-purple">Market Leader</span>
+      </div>
+      <div class="grid-2">
+        <ul class="feature-list">
+          <li>Only platform correlating cyber and physical events for German KRITIS compliance</li>
+          <li>Built-in legal logic for BSI/BBK dual reporting per §18</li>
+          <li>Facility floor plan overlay with combined risk visualization</li>
+        </ul>
+        <ul class="feature-list">
+          <li>24/7 contact point management with automated §8 compliance</li>
+          <li>4-year resilience cycle tracking with BBK audit evidence</li>
+          <li>Board-level liability exposure metrics per §20</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="metrics">
+  <div class="container">
+    <h2 class="section-title">📊 Success Metrics</h2>
+    <p class="section-subtitle">Operational, compliance, and business KPIs to measure platform value</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Operational KPIs</div>
+          <span class="card-badge badge-blue">SOC</span>
+        </div>
+        <ul class="feature-list">
+          <li>Mean Time to Detect correlated incidents (MTTD-C)</li>
+          <li>Reporting accuracy rate (correct BSI/BBK classification)</li>
+          <li>24/7 contact point availability percentage</li>
+          <li>Incident-to-report submission time (within 24h SLA)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Compliance KPIs</div>
+          <span class="card-badge badge-green">Legal</span>
+        </div>
+        <ul class="feature-list">
+          <li>Risk assessment completion (4-year cycle adherence)</li>
+          <li>Resilience plan task completion percentage</li>
+          <li>BBK audit deficiency findings (target: zero critical)</li>
+          <li>Management liability exposure score reduction</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Business KPIs</div>
+          <span class="card-badge badge-purple">ROI</span>
+        </div>
+        <ul class="feature-list">
+          <li>Hours saved per incident report vs manual</li>
+          <li>Compliance preparation effort reduction (FTE weeks)</li>
+          <li>Board confidence in resilience posture</li>
+          <li>Avoided fines (risk reduction quantified in €)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <p><strong>ResilienceFusion SOC</strong> — Cross-Domain Resilience Dashboard Specification v1.0.0</p>
+    <p style="margin-top: 8px; color: var(--text-muted);">KRITIS-DachG §8-§20 Compliant | NIS2 Aligned | Built for German Critical Infrastructure Operators</p>
+    <p style="margin-top: 8px; font-size: 12px;">Generated: 2026-07-13 | Document Type: Project Specification & Frontend Blueprint</p>
+  </div>
+</footer>
+
+<script>
+function scrollToSection(id) {
+  const element = document.getElementById(id);
+  if (element) {
+    const navHeight = document.querySelector('.nav').offsetHeight;
+    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+    const offsetPosition = elementPosition - navHeight - 16;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+  }
+}
+
+// Highlight active nav item on scroll
+window.addEventListener('scroll', function() {
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav a');
+  const navHeight = document.querySelector('.nav').offsetHeight;
+
+  let current = '';
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop - navHeight - 50;
+    if (window.pageYOffset >= sectionTop) {
+      current = section.getAttribute('id');
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('onclick') && link.getAttribute('onclick').includes("'" + current + "'")) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
