@@ -1,3 +1,5 @@
+<img width="1287" height="943" alt="image" src="https://github.com/user-attachments/assets/a4f1fa04-6670-403f-acb0-826e6fd1d53c" />
+
 Cross-Domain Resilience Dashboard: Cyber + Physical (NIS2 + KRITIS-DachG)
 The Problem: The KRITIS-DachG (in force since March 17, 2026) is the first German law mandating physical and organizational resilience alongside cybersecurity. Operators must now report incidents to both the BSI (cyber) and the BBK (physical) within 24 hours, maintain 24/7 contact points, and conduct risk analyses covering natural disasters, sabotage, and terrorism—not just cyber threats. Most SOCs have no tooling to correlate cyber and physical security events. ​
 Project Overview: Create a unified SOC analyst frontend that:
