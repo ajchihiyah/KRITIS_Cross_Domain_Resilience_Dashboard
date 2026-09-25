@@ -201,6 +201,17 @@ Manages §8 mandatory contact point with automated check-in verification, escala
 | **[Technical Modules](KRITIS_Cross_Domain_Resilience_Dashboard_Spec.json)** | Core module specifications and correlation scenarios | JSON |
 
 ---
+## Architecture & Production Path
+
+**Current implementation:** Zero-dependency, single-file vanilla JS (HTML/CSS/JS) —
+deployable in restricted SOC environments with no build step or external dependencies.
+
+**Production implementation path:** Where multi-user, real-time, or enterprise integration
+requirements demand it, the production build is implemented in **React with D3.js/Chart.js**
+for componentized state management, API-driven data layers, and role-based access —
+migrating the current state-driven rendering pattern into a component architecture.
+
+---
 
 ## Getting Started
 
